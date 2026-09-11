@@ -67,3 +67,15 @@ vcpkg_installed/
 # test output & cache
 Testing/
 .cache/
+
+# Executable files
+*.exe
+*.out
+*.app
+
+# VS Code settings folder
+.vscode/
+
+# Object files
+*.o
+*.obj
