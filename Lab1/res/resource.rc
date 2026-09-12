@@ -1,0 +1,31 @@
+#include <windows.h>
+#include "resource.h"
+
+IDR_MENU1 MENU
+BEGIN
+    POPUP "Робота"
+    BEGIN
+        MENUITEM "Робота1", ID_WORK1
+        MENUITEM "Робота2", ID_WORK2
+    END
+END
+
+IDD_DIALOG1 DIALOGEX 0, 0, 150, 100
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Робота 1 - Список груп"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LISTBOX         IDC_LISTBOX, 10, 10, 130, 60, WS_TABSTOP | LBS_STANDARD
+    DEFPUSHBUTTON   "Так", IDOK, 20, 75, 50, 14
+    PUSHBUTTON      "Відміна", IDCANCEL, 80, 75, 50, 14
+END
+
+IDD_DIALOG2 DIALOGEX 0, 0, 150, 60
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Робота 2 - Ввід тексту"
+FONT 8, "MS Sans Serif"
+BEGIN
+    EDITTEXT        IDC_EDITBOX, 10, 10, 130, 14, ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "Так", IDOK, 20, 35, 50, 14
+    PUSHBUTTON      "Відміна", IDCANCEL, 80, 35, 50, 14
+END
