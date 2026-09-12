@@ -1,31 +1,33 @@
+#pragma code_page(65001)   // РіРѕРІРѕСЂРёС‚ windres, С‡С‚Рѕ СЃС‚СЂРѕРєРё РІ UTF-8
+
 #include <windows.h>
 #include "resource.h"
 
-IDR_MENU1 MENU
+IDR_MAINMENU MENU
 BEGIN
-    POPUP "Робота"
+    POPUP "Р РѕР±РѕС‚Р°"
     BEGIN
-        MENUITEM "Робота1", ID_WORK1
-        MENUITEM "Робота2", ID_WORK2
+        MENUITEM "Р РѕР±РѕС‚Р°1", ID_ROBOTA_ROBOTA1
+        MENUITEM "Р РѕР±РѕС‚Р°2", ID_ROBOTA_ROBOTA2
     END
 END
 
-IDD_DIALOG1 DIALOGEX 0, 0, 150, 100
-STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Робота 1 - Список груп"
-FONT 8, "MS Sans Serif"
+IDD_DLG_ROBOTA1 DIALOGEX 0, 0, 200, 130
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Р РѕР±РѕС‚Р°1 вЂ” Р“СЂСѓРїРё С„Р°РєСѓР»СЊС‚РµС‚Сѓ"
+FONT 9, "MS Shell Dlg"
 BEGIN
-    LISTBOX         IDC_LISTBOX, 10, 10, 130, 60, WS_TABSTOP | LBS_STANDARD
-    DEFPUSHBUTTON   "Так", IDOK, 20, 75, 50, 14
-    PUSHBUTTON      "Відміна", IDCANCEL, 80, 75, 50, 14
+    LISTBOX         IDC_LIST_GROUPS, 10, 10, 180, 85, LBS_NOTIFY | LBS_STANDARD | WS_TABSTOP
+    DEFPUSHBUTTON   "РўР°Рє",      IDOK,     45, 105, 50, 14
+    PUSHBUTTON      "Р’С–РґРјС–РЅР°",  IDCANCEL, 105, 105, 50, 14
 END
 
-IDD_DIALOG2 DIALOGEX 0, 0, 150, 60
-STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Робота 2 - Ввід тексту"
-FONT 8, "MS Sans Serif"
+IDD_DLG_ROBOTA2 DIALOGEX 0, 0, 200, 70
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Р РѕР±РѕС‚Р°2 вЂ” Р’РІРµРґРµРЅРЅСЏ С‚РµРєСЃС‚Сѓ"
+FONT 9, "MS Shell Dlg"
 BEGIN
-    EDITTEXT        IDC_EDITBOX, 10, 10, 130, 14, ES_AUTOHSCROLL
-    DEFPUSHBUTTON   "Так", IDOK, 20, 35, 50, 14
-    PUSHBUTTON      "Відміна", IDCANCEL, 80, 35, 50, 14
+    EDITTEXT        IDC_EDIT_TEXT, 10, 15, 180, 14, ES_AUTOHSCROLL | WS_TABSTOP | WS_BORDER
+    DEFPUSHBUTTON   "РўР°Рє",      IDOK,     45, 45, 50, 14
+    PUSHBUTTON      "Р’С–РґРјС–РЅР°",  IDCANCEL, 105, 45, 50, 14
 END

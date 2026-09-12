@@ -1,34 +1,42 @@
 #include "module2.h"
 #include "resource.h"
 
-static char* g_buffer = nullptr;
-static int g_bufferSize = 0;
+namespace {
 
-static INT_PTR CALLBACK Dialog2Proc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam) {
-    switch (uMsg) {
-        case WM_INITDIALOG:
-            return (INT_PTR)TRUE;
-        
-        case WM_COMMAND: {
-            if (LOWORD(wParam) == IDOK) {
-                if (g_buffer != nullptr) {
-                    GetDlgItemText(hwndDlg, IDC_EDITBOX, g_buffer, g_bufferSize);
-                }
-                EndDialog(hwndDlg, IDOK);
-                return (INT_PTR)TRUE;
-            }
-            else if (LOWORD(wParam) == IDCANCEL) {
-                EndDialog(hwndDlg, IDCANCEL);
-                return (INT_PTR)TRUE;
-            }
-            break;
+struct DialogParams {
+    wchar_t* buffer;
+    int bufferSize;
+};
+
+INT_PTR CALLBACK Robota2DialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam) {
+    switch (message) {
+    case WM_INITDIALOG:
+        SetWindowLongPtrW(hDlg, DWLP_USER, static_cast<LONG_PTR>(lParam));
+        return TRUE;
+    case WM_COMMAND:
+        switch (LOWORD(wParam)) {
+        case IDOK: {
+            auto* params = reinterpret_cast<DialogParams*>(GetWindowLongPtrW(hDlg, DWLP_USER));
+            if (params && params->buffer && params->bufferSize > 0)
+                GetDlgItemTextW(hDlg, IDC_EDIT_TEXT, params->buffer, params->bufferSize);
+            EndDialog(hDlg, IDOK);
+            return TRUE;
         }
+        case IDCANCEL:
+            EndDialog(hDlg, IDCANCEL);
+            return TRUE;
+        }
+        break;
     }
-    return (INT_PTR)FALSE;
+    return FALSE;
 }
 
-bool ShowDialog2(HWND hwndParent, char* buffer, int bufferSize) {
-    g_buffer = buffer;
-    g_bufferSize = bufferSize;
-    return (DialogBox(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_DIALOG2), hwndParent, Dialog2Proc) == IDOK);
+} 
+
+int ShowRobota2Dialog(HWND hParentWnd, HINSTANCE hInstance,
+                       wchar_t* outBuffer, int outBufferSize) {
+    DialogParams params{ outBuffer, outBufferSize };
+    return static_cast<int>(DialogBoxParamW(
+        hInstance, MAKEINTRESOURCEW(IDD_DLG_ROBOTA2), hParentWnd,
+        Robota2DialogProc, reinterpret_cast<LPARAM>(&params)));
 }

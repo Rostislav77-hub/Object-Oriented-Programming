@@ -1,7 +1,5 @@
-#ifndef MODULE1_H
-#define MODULE1_H
+#pragma once
 #include <windows.h>
 
-bool ShowDialog1(HWND hwndParent, char* buffer, int bufferSize);
-
-#endif
+int ShowRobota1Dialog(HWND hParentWnd, HINSTANCE hInstance,
+                       wchar_t* outBuffer, int outBufferSize);

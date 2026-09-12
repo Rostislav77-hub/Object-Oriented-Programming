@@ -1,14 +1,11 @@
-#ifndef RESOURCE_H
-#define RESOURCE_H
+#pragma once
 
-#define IDR_MENU1 101
-#define IDD_DIALOG1 102
-#define IDD_DIALOG2 103
+#define IDR_MAINMENU            101
+#define ID_ROBOTA_ROBOTA1       40001   
+#define ID_ROBOTA_ROBOTA2       40002   
 
-#define ID_WORK1 40001
-#define ID_WORK2 40002
+#define IDD_DLG_ROBOTA1          201    
+#define IDD_DLG_ROBOTA2          202    
 
-#define IDC_LISTBOX 1001
-#define IDC_EDITBOX 1002
-
-#endif
+#define IDC_LIST_GROUPS         1001
+#define IDC_EDIT_TEXT           1002

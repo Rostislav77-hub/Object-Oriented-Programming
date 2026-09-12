@@ -1,39 +1,59 @@
 #include "module1.h"
 #include "resource.h"
 
-static char* g_buffer = nullptr;
-static int g_bufferSize = 0;
+namespace {
 
-static INT_PTR CALLBACK Dialog1Proc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam) {
-    switch (uMsg) {
-        case WM_INITDIALOG: {
-            SendDlgItemMessage(hwndDlg, IDC_LISTBOX, LB_ADDSTRING, 0, (LPARAM)"≤Ã-55");
-            SendDlgItemMessage(hwndDlg, IDC_LISTBOX, LB_ADDSTRING, 0, (LPARAM)"≤œ-51");
-            SendDlgItemMessage(hwndDlg, IDC_LISTBOX, LB_ADDSTRING, 0, (LPARAM)"≤¿-53");
-            SendDlgItemMessage(hwndDlg, IDC_LISTBOX, LB_ADDSTRING, 0, (LPARAM)"≤—-52");
-            return (INT_PTR)TRUE;
-        }
-        case WM_COMMAND: {
-            if (LOWORD(wParam) == IDOK) {
-                LRESULT sel = SendDlgItemMessage(hwndDlg, IDC_LISTBOX, LB_GETCURSEL, 0, 0);
-                if (sel != LB_ERR && g_buffer != nullptr) {
-                    SendDlgItemMessage(hwndDlg, IDC_LISTBOX, LB_GETTEXT, sel, (LPARAM)g_buffer);
-                }
-                EndDialog(hwndDlg, IDOK);
-                return (INT_PTR)TRUE;
-            }
-            else if (LOWORD(wParam) == IDCANCEL) {
-                EndDialog(hwndDlg, IDCANCEL);
-                return (INT_PTR)TRUE;
-            }
-            break;
-        }
+const wchar_t* const kGroups[] = {
+    L"–Ü–ú-55", L"–Ü–ü-51", L"–Ü–ê-53", L"–Ü–°-52"
+};
+const int kGroupsCount = static_cast<int>(sizeof(kGroups) / sizeof(kGroups[0]));
+
+struct DialogParams {
+    wchar_t* buffer;
+    int bufferSize;
+};
+
+INT_PTR CALLBACK Robota1DialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam) {
+    switch (message) {
+    case WM_INITDIALOG: {
+        SetWindowLongPtrW(hDlg, DWLP_USER, static_cast<LONG_PTR>(lParam));
+        HWND hList = GetDlgItem(hDlg, IDC_LIST_GROUPS);
+        for (int i = 0; i < kGroupsCount; ++i)
+            SendMessageW(hList, LB_ADDSTRING, 0, reinterpret_cast<LPARAM>(kGroups[i]));
+        SendMessageW(hList, LB_SETCURSEL, 0, 0);
+        return TRUE;
     }
-    return (INT_PTR)FALSE;
+    case WM_COMMAND:
+        switch (LOWORD(wParam)) {
+        case IDOK: {
+            auto* params = reinterpret_cast<DialogParams*>(GetWindowLongPtrW(hDlg, DWLP_USER));
+            HWND hList = GetDlgItem(hDlg, IDC_LIST_GROUPS);
+            int sel = static_cast<int>(SendMessageW(hList, LB_GETCURSEL, 0, 0));
+            if (sel != LB_ERR && params && params->buffer && params->bufferSize > 0) {
+                int len = static_cast<int>(SendMessageW(hList, LB_GETTEXTLEN, sel, 0));
+                if (len >= 0 && len < params->bufferSize)
+                    SendMessageW(hList, LB_GETTEXT, sel, reinterpret_cast<LPARAM>(params->buffer));
+                else
+                    params->buffer[0] = L'\0';
+            }
+            EndDialog(hDlg, IDOK);
+            return TRUE;
+        }
+        case IDCANCEL:
+            EndDialog(hDlg, IDCANCEL);
+            return TRUE;
+        }
+        break;
+    }
+    return FALSE;
 }
 
-bool ShowDialog1(HWND hwndParent, char* buffer, int bufferSize) {
-    g_buffer = buffer;
-    g_bufferSize = bufferSize;
-    return (DialogBox(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_DIALOG1), hwndParent, Dialog1Proc) == IDOK);
+} 
+
+int ShowRobota1Dialog(HWND hParentWnd, HINSTANCE hInstance,
+                       wchar_t* outBuffer, int outBufferSize) {
+    DialogParams params{ outBuffer, outBufferSize };
+    return static_cast<int>(DialogBoxParamW(
+        hInstance, MAKEINTRESOURCEW(IDD_DLG_ROBOTA1), hParentWnd,
+        Robota1DialogProc, reinterpret_cast<LPARAM>(&params)));
 }

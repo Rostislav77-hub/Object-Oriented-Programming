@@ -3,71 +3,91 @@
 #include "module1.h"
 #include "module2.h"
 
-const char g_szClassName[] = "myWindowClass";
-char g_DisplayText[256] = "������ ����� ���� '������'";
+namespace {
 
-LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
-    switch (msg) {
-        case WM_COMMAND: {
-            int wmId = LOWORD(wParam);
-            switch (wmId) {
-                case ID_WORK1: {
-                    if (ShowDialog1(hwnd, g_DisplayText, sizeof(g_DisplayText))) {
-                        InvalidateRect(hwnd, NULL, TRUE);
-                    }
-                    break;
-                }
-                case ID_WORK2: {
-                    if (ShowDialog2(hwnd, g_DisplayText, sizeof(g_DisplayText))) {
-                        InvalidateRect(hwnd, NULL, TRUE);
-                    }
-                    break;
-                }
-            }
-            break;
-        }
-        case WM_PAINT: {
-            PAINTSTRUCT ps;
-            HDC hdc = BeginPaint(hwnd, &ps);
-            TextOutA(hdc, 50, 50, g_DisplayText, lstrlenA(g_DisplayText));
-            EndPaint(hwnd, &ps);
-            break;
-        }
-        case WM_DESTROY:
-            PostQuitMessage(0);
-            break;
-        default:
-            return DefWindowProcA(hwnd, msg, wParam, lParam);
-    }
-    return 0;
+const wchar_t kWindowClassName[] = L"Lab1MainWindowClass";
+const wchar_t kWindowTitle[]     = L"Лабораторна робота №1 (Ж=15, ІМ-55)";
+
+HINSTANCE g_hInstance = nullptr;
+wchar_t g_displayText[256] = L"";
+
+void OnPaint(HWND hWnd) {
+    PAINTSTRUCT ps;
+    HDC hdc = BeginPaint(hWnd, &ps);
+    RECT rc;
+    GetClientRect(hWnd, &rc);
+    rc.left += 20; rc.top += 20;
+    DrawTextW(hdc, g_displayText, -1, &rc, DT_LEFT | DT_TOP | DT_WORDBREAK);
+    EndPaint(hWnd, &ps);
 }
 
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
-    WNDCLASSEXA wc = {0};
-    HWND hwnd;
-    MSG Msg;
-
-    wc.cbSize        = sizeof(WNDCLASSEXA);
-    wc.lpfnWndProc   = WndProc;
-    wc.hInstance     = hInstance;
-    wc.hCursor       = LoadCursor(NULL, IDC_ARROW);
-    wc.hbrBackground = (HBRUSH)(COLOR_WINDOW+1);
-    wc.lpszMenuName  = MAKEINTRESOURCEA(IDR_MENU1);
-    wc.lpszClassName = g_szClassName;
-
-    if(!RegisterClassExA(&wc)) return 0;
-
-    hwnd = CreateWindowExA(0, g_szClassName, "Lab 1 - OOP", WS_OVERLAPPEDWINDOW,
-        CW_USEDEFAULT, CW_USEDEFAULT, 400, 300, NULL, NULL, hInstance, NULL);
-
-    if(hwnd == NULL) return 0;
-
-    ShowWindow(hwnd, nCmdShow);
-    UpdateWindow(hwnd);
-
-    while(GetMessageA(&Msg, NULL, 0, 0) > 0) {
-        TranslateMessage(&Msg);
-        DispatchMessageA(&Msg);
+LRESULT CALLBACK MainWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
+    switch (message) {
+    case WM_COMMAND:
+        switch (LOWORD(wParam)) {
+        case ID_ROBOTA_ROBOTA1: {
+            wchar_t buffer[256] = L"";
+            if (ShowRobota1Dialog(hWnd, g_hInstance, buffer, 256) == IDOK) {
+                lstrcpynW(g_displayText, buffer, 256);
+                InvalidateRect(hWnd, nullptr, TRUE);
+            }
+            return 0;
+        }
+        case ID_ROBOTA_ROBOTA2: {
+            wchar_t buffer[256] = L"";
+            if (ShowRobota2Dialog(hWnd, g_hInstance, buffer, 256) == IDOK) {
+                lstrcpynW(g_displayText, buffer, 256);
+                InvalidateRect(hWnd, nullptr, TRUE);
+            }
+            return 0;
+        }
+        }
+        break;
+    case WM_PAINT:
+        OnPaint(hWnd);
+        return 0;
+    case WM_DESTROY:
+        PostQuitMessage(0);
+        return 0;
     }
-    return Msg.wParam;
+    return DefWindowProcW(hWnd, message, wParam, lParam);
+}
+
+ATOM RegisterMainWindowClass(HINSTANCE hInstance) {
+    WNDCLASSEXW wc = {};
+    wc.cbSize = sizeof(wc);
+    wc.style = CS_HREDRAW | CS_VREDRAW;
+    wc.lpfnWndProc = MainWndProc;
+    wc.hInstance = hInstance;
+    wc.hIcon = LoadIconW(nullptr, IDI_APPLICATION);
+    wc.hCursor = LoadCursorW(nullptr, IDC_ARROW);
+    wc.hbrBackground = reinterpret_cast<HBRUSH>(COLOR_WINDOW + 1);
+    wc.lpszMenuName = MAKEINTRESOURCEW(IDR_MAINMENU);
+    wc.lpszClassName = kWindowClassName;
+    wc.hIconSm = LoadIconW(nullptr, IDI_APPLICATION);
+    return RegisterClassExW(&wc);
+}
+
+} 
+
+int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int nCmdShow) {
+    g_hInstance = hInstance;
+    if (!RegisterMainWindowClass(hInstance)) {
+        MessageBoxW(nullptr, L"Не вдалося зареєструвати клас вікна.", L"Помилка", MB_ICONERROR);
+        return 1;
+    }
+    HWND hWnd = CreateWindowExW(0, kWindowClassName, kWindowTitle, WS_OVERLAPPEDWINDOW,
+        CW_USEDEFAULT, CW_USEDEFAULT, 520, 360, nullptr, nullptr, hInstance, nullptr);
+    if (!hWnd) {
+        MessageBoxW(nullptr, L"Не вдалося створити вікно.", L"Помилка", MB_ICONERROR);
+        return 1;
+    }
+    ShowWindow(hWnd, nCmdShow);
+    UpdateWindow(hWnd);
+    MSG msg;
+    while (GetMessageW(&msg, nullptr, 0, 0) > 0) {
+        TranslateMessage(&msg);
+        DispatchMessageW(&msg);
+    }
+    return static_cast<int>(msg.wParam);
 }

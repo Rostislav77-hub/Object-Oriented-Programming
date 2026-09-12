@@ -1,7 +1,5 @@
-#ifndef MODULE2_H
-#define MODULE2_H
+#pragma once
 #include <windows.h>
 
-bool ShowDialog2(HWND hwndParent, char* buffer, int bufferSize);
-
-#endif
+int ShowRobota2Dialog(HWND hParentWnd, HINSTANCE hInstance,
+                       wchar_t* outBuffer, int outBufferSize);
