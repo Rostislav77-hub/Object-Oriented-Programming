@@ -1,0 +1,22 @@
+#pragma code_page(65001)
+#include <windows.h>
+#include "resource.h"
+
+IDR_MAINMENU MENU
+BEGIN
+    POPUP "Файл"
+    BEGIN
+        MENUITEM "Вихід", ID_FILE_EXIT
+    END
+    POPUP "Об'єкти"
+    BEGIN
+        MENUITEM "Крапка",      ID_OBJ_POINT
+        MENUITEM "Лінія",       ID_OBJ_LINE
+        MENUITEM "Прямокутник", ID_OBJ_RECT
+        MENUITEM "Еліпс",       ID_OBJ_ELLIPSE
+    END
+    POPUP "Довідка"
+    BEGIN
+        MENUITEM "Про програму...", ID_HELP_ABOUT
+    END
+END
