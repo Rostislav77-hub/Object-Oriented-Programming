@@ -1,5 +1,48 @@
 #include "shape_editor.h"
 #include "resource.h"
+#include <algorithm>
+
+namespace {
+
+HBITMAP CreateToolbarIcons(HWND hWnd) {
+    HDC hdcScreen = GetDC(hWnd);
+    HDC hdcMem = CreateCompatibleDC(hdcScreen);
+    HBITMAP hBmp = CreateCompatibleBitmap(hdcScreen, 64, 16);
+    HBITMAP hOldBmp = static_cast<HBITMAP>(SelectObject(hdcMem, hBmp));
+
+    RECT rcFull = { 0, 0, 64, 16 };
+    FillRect(hdcMem, &rcFull, GetSysColorBrush(COLOR_BTNFACE));
+
+    HPEN hBlackPen = CreatePen(PS_SOLID, 1, RGB(0, 0, 0));
+    HPEN hOldPen = static_cast<HPEN>(SelectObject(hdcMem, hBlackPen));
+
+    RECT rcDot = { 6, 6, 10, 10 };
+    FillRect(hdcMem, &rcDot, static_cast<HBRUSH>(GetStockObject(BLACK_BRUSH)));
+
+    MoveToEx(hdcMem, 19, 13, nullptr);
+    LineTo(hdcMem, 29, 3);
+    MoveToEx(hdcMem, 19, 12, nullptr);
+    LineTo(hdcMem, 28, 3);
+
+    HBRUSH hOrangeBrush = CreateSolidBrush(RGB(255, 165, 0));
+    HBRUSH hOldBrush = static_cast<HBRUSH>(SelectObject(hdcMem, hOrangeBrush));
+    Rectangle(hdcMem, 34, 3, 46, 13);
+
+    SelectObject(hdcMem, GetStockObject(WHITE_BRUSH));
+    Ellipse(hdcMem, 50, 3, 62, 13);
+
+    SelectObject(hdcMem, hOldBrush);
+    DeleteObject(hOrangeBrush);
+    SelectObject(hdcMem, hOldPen);
+    DeleteObject(hBlackPen);
+
+    SelectObject(hdcMem, hOldBmp);
+    DeleteDC(hdcMem);
+    ReleaseDC(hWnd, hdcScreen);
+    return hBmp;
+}
+
+} 
 
 Shape* ShapeEditor::pcshape[MY_SHAPE_ARRAY_SIZE] = { nullptr };
 int ShapeEditor::shapeCount = 0;
@@ -28,9 +71,13 @@ void ShapeEditor::OnLBdown(HWND hWnd) {
     POINT pt;
     GetCursorPos(&pt);
     ScreenToClient(hWnd, &pt);
+
+    if (pt.y < 32) return;
+
     x1 = x2 = pt.x;
     y1 = y2 = pt.y;
     isDragging = true;
+    hasRubberBand = false;
     SetCapture(hWnd);
 }
 
@@ -52,7 +99,7 @@ void PointEditor::OnLBup(HWND hWnd) {
     GetCursorPos(&pt);
     ScreenToClient(hWnd, &pt);
     x2 = pt.x;
-    y2 = pt.y;
+    y2 = std::max(pt.y, 32L);
 
     if (shapeCount < MY_SHAPE_ARRAY_SIZE) {
         pcshape[shapeCount] = new PointShape();
@@ -70,17 +117,20 @@ void LineEditor::OnMouseMove(HWND hWnd) {
     HPEN hPen = CreateRubberPen();
     HPEN hOldPen = static_cast<HPEN>(SelectObject(hdc, hPen));
 
-    MoveToEx(hdc, x1, y1, nullptr);
-    LineTo(hdc, x2, y2);
+    if (hasRubberBand) {
+        MoveToEx(hdc, x1, y1, nullptr);
+        LineTo(hdc, x2, y2);
+    }
 
     POINT pt;
     GetCursorPos(&pt);
     ScreenToClient(hWnd, &pt);
     x2 = pt.x;
-    y2 = pt.y;
+    y2 = std::max(pt.y, 32L);
 
     MoveToEx(hdc, x1, y1, nullptr);
     LineTo(hdc, x2, y2);
+    hasRubberBand = true;
 
     SelectObject(hdc, hOldPen);
     DeleteObject(hPen);
@@ -96,9 +146,9 @@ void LineEditor::OnLBup(HWND hWnd) {
     GetCursorPos(&pt);
     ScreenToClient(hWnd, &pt);
     x2 = pt.x;
-    y2 = pt.y;
+    y2 = std::max(pt.y, 32L);
 
-    if (shapeCount < MY_SHAPE_ARRAY_SIZE) {
+    if ((x1 != x2 || y1 != y2) && shapeCount < MY_SHAPE_ARRAY_SIZE) {
         pcshape[shapeCount] = new LineShape();
         pcshape[shapeCount]->Set(x1, y1, x2, y2);
         ++shapeCount;
@@ -116,15 +166,18 @@ void RectEditor::OnMouseMove(HWND hWnd) {
     HPEN hOldPen = static_cast<HPEN>(SelectObject(hdc, hPen));
     HBRUSH hOldBrush = static_cast<HBRUSH>(SelectObject(hdc, hBrush));
 
-    Rectangle(hdc, x1, y1, x2, y2);
+    if (hasRubberBand) {
+        Rectangle(hdc, std::min(x1, x2), std::min(y1, y2), std::max(x1, x2), std::max(y1, y2));
+    }
 
     POINT pt;
     GetCursorPos(&pt);
     ScreenToClient(hWnd, &pt);
     x2 = pt.x;
-    y2 = pt.y;
+    y2 = std::max(pt.y, 32L);
 
-    Rectangle(hdc, x1, y1, x2, y2);
+    Rectangle(hdc, std::min(x1, x2), std::min(y1, y2), std::max(x1, x2), std::max(y1, y2));
+    hasRubberBand = true;
 
     SelectObject(hdc, hOldBrush);
     SelectObject(hdc, hOldPen);
@@ -141,9 +194,9 @@ void RectEditor::OnLBup(HWND hWnd) {
     GetCursorPos(&pt);
     ScreenToClient(hWnd, &pt);
     x2 = pt.x;
-    y2 = pt.y;
+    y2 = std::max(pt.y, 32L);
 
-    if (shapeCount < MY_SHAPE_ARRAY_SIZE) {
+    if ((x1 != x2 && y1 != y2) && shapeCount < MY_SHAPE_ARRAY_SIZE) {
         pcshape[shapeCount] = new RectShape();
         pcshape[shapeCount]->Set(x1, y1, x2, y2);
         ++shapeCount;
@@ -161,15 +214,22 @@ void EllipseEditor::OnMouseMove(HWND hWnd) {
     HPEN hOldPen = static_cast<HPEN>(SelectObject(hdc, hPen));
     HBRUSH hOldBrush = static_cast<HBRUSH>(SelectObject(hdc, hBrush));
 
-    Ellipse(hdc, 2 * x1 - x2, 2 * y1 - y2, x2, y2);
+    if (hasRubberBand) {
+        long xOpp = 2 * x1 - x2;
+        long yOpp = 2 * y1 - y2;
+        Ellipse(hdc, std::min(xOpp, x2), std::min(yOpp, y2), std::max(xOpp, x2), std::max(yOpp, y2));
+    }
 
     POINT pt;
     GetCursorPos(&pt);
     ScreenToClient(hWnd, &pt);
     x2 = pt.x;
-    y2 = pt.y;
+    y2 = std::max(pt.y, 32L);
 
-    Ellipse(hdc, 2 * x1 - x2, 2 * y1 - y2, x2, y2);
+    long xOpp = 2 * x1 - x2;
+    long yOpp = 2 * y1 - y2;
+    Ellipse(hdc, std::min(xOpp, x2), std::min(yOpp, y2), std::max(xOpp, x2), std::max(yOpp, y2));
+    hasRubberBand = true;
 
     SelectObject(hdc, hOldBrush);
     SelectObject(hdc, hOldPen);
@@ -186,9 +246,9 @@ void EllipseEditor::OnLBup(HWND hWnd) {
     GetCursorPos(&pt);
     ScreenToClient(hWnd, &pt);
     x2 = pt.x;
-    y2 = pt.y;
+    y2 = std::max(pt.y, 32L);
 
-    if (shapeCount < MY_SHAPE_ARRAY_SIZE) {
+    if ((x1 != x2 && y1 != y2) && shapeCount < MY_SHAPE_ARRAY_SIZE) {
         pcshape[shapeCount] = new EllipseShape();
         pcshape[shapeCount]->Set(x1, y1, x2, y2);
         ++shapeCount;
@@ -200,6 +260,10 @@ ShapeObjectsEditor::ShapeObjectsEditor() = default;
 
 ShapeObjectsEditor::~ShapeObjectsEditor() {
     delete pse;
+    if (hToolbarBmp) {
+        DeleteObject(hToolbarBmp);
+        hToolbarBmp = nullptr;
+    }
     ShapeEditor::FreeArray();
 }
 
@@ -229,17 +293,11 @@ void ShapeObjectsEditor::OnCreate(HWND hWnd, HINSTANCE hInst) {
     SendMessageW(hWndToolbar, TB_SETBITMAPSIZE, 0, MAKELONG(16, 16));
     SendMessageW(hWndToolbar, TB_SETBUTTONSIZE, 0, MAKELONG(24, 24));
 
-    HBITMAP hBmp = static_cast<HBITMAP>(LoadImageW(
-        hInst,
-        MAKEINTRESOURCEW(IDB_TOOLBAR),
-        IMAGE_BITMAP,
-        64, 16,
-        LR_CREATEDIBSECTION
-    ));
+    hToolbarBmp = CreateToolbarIcons(hWnd);
 
     TBADDBITMAP tbab = {};
-    tbab.hInst = nullptr; 
-    tbab.nID   = reinterpret_cast<UINT_PTR>(hBmp);
+    tbab.hInst = nullptr;
+    tbab.nID   = reinterpret_cast<UINT_PTR>(hToolbarBmp);
     SendMessageW(hWndToolbar, TB_ADDBITMAP, 4, reinterpret_cast<LPARAM>(&tbab));
 
     TBBUTTON tbb[4] = {};

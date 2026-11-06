@@ -10,6 +10,7 @@ class ShapeEditor : public Editor {
 protected:
     long x1 = 0, y1 = 0, x2 = 0, y2 = 0;
     bool isDragging = false;
+    bool hasRubberBand = false;
 
     static Shape* pcshape[MY_SHAPE_ARRAY_SIZE];
     static int shapeCount;
@@ -52,6 +53,7 @@ class ShapeObjectsEditor {
 private:
     ShapeEditor* pse = nullptr;
     HWND hWndToolbar = nullptr;
+    HBITMAP hToolbarBmp = nullptr;
     UINT currentToolId = 0;
 
     void UpdateToolbarState();
