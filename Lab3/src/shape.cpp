@@ -1,4 +1,3 @@
-// src/shape.cpp
 #include "shape.h"
 #include <algorithm>
 
