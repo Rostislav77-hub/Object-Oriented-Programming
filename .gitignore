@@ -78,3 +78,5 @@ Testing/
 # Object files
 *.o
 *.obj
+# Lab5 auto-save
+objects.txt
