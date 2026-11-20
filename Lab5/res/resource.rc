@@ -1,0 +1,46 @@
+#pragma code_page(65001)
+#include <windows.h>
+#include <commctrl.h>
+#include "resource.h"
+
+IDR_MAINMENU MENU
+BEGIN
+    POPUP "Файл"
+    BEGIN
+        MENUITEM "Відкрити...",     ID_FILE_OPEN
+        MENUITEM "Зберегти як...",  ID_FILE_SAVE
+        MENUITEM "Очистити полотно", ID_FILE_CLEAR
+        MENUITEM SEPARATOR
+        MENUITEM "Вихід",           ID_FILE_EXIT
+    END
+    POPUP "Об'єкти"
+    BEGIN
+        MENUITEM "Крапка",             ID_OBJ_POINT
+        MENUITEM "Лінія",              ID_OBJ_LINE
+        MENUITEM "Прямокутник",        ID_OBJ_RECT
+        MENUITEM "Еліпс",              ID_OBJ_ELLIPSE
+        MENUITEM "Лінія з кружечками", ID_OBJ_LINEOO
+        MENUITEM "Каркас куба",        ID_OBJ_CUBE
+    END
+    POPUP "Вікно"
+    BEGIN
+        MENUITEM "Таблиця об'єктів", ID_VIEW_TABLE
+    END
+    POPUP "Довідка"
+    BEGIN
+        MENUITEM "Про програму...", ID_HELP_ABOUT
+    END
+END
+
+IDD_TABLE_DIALOG DIALOGEX 0, 0, 320, 215
+STYLE DS_SETFONT | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+CAPTION "Таблиця об'єктів"
+FONT 9, "Segoe UI"
+BEGIN
+    CONTROL "", IDC_TABLE_LIST, "SysListView32",
+            LVS_REPORT | LVS_SINGLESEL | LVS_SHOWSELALWAYS | WS_BORDER | WS_TABSTOP,
+            6, 6, 308, 178
+    PUSHBUTTON "Видалити виділений", IDC_BTN_DELETE,     6, 190, 105, 18
+    PUSHBUTTON "Зняти виділення",    IDC_BTN_CLEAR_SEL, 117, 190,  95, 18
+    PUSHBUTTON "Закрити",            IDCANCEL,          254, 190,  60, 18
+END
